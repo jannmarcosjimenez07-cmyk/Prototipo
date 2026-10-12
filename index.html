@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>SantiagoMov: prototipo</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--tx:#14213d;--mu:#5b6b84;--pr:#0b6e99;--ok:#1f9d55;--wa:#e0a100;--er:#d64545;--bd:#d9e1ec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1724;--card:#182233;--tx:#e8eef7;--mu:#9fb0c8;--pr:#4cb7e6;--bd:#2a3850}}
+:root[data-theme="dark"]{--bg:#0f1724;--card:#182233;--tx:#e8eef7;--mu:#9fb0c8;--pr:#4cb7e6;--bd:#2a3850}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Arial,Helvetica,sans-serif}
+header{padding:16px;background:var(--pr);color:#fff}header h1{margin:0;font-size:20px}header p{margin:2px 0 0;font-size:13px;opacity:.9}
+nav{display:flex;gap:6px;padding:10px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--bd)}
+nav button{flex:1;min-width:92px;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;cursor:pointer}
+nav button.on{background:var(--pr);color:#fff;border-color:var(--pr)}
+main{max-width:860px;margin:0 auto;padding:14px}section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kpi{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:24px;color:var(--pr)}.kpi span{font-size:12px;color:var(--mu)}
+h2{margin:0 0 8px;font-size:17px}label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+select,input,textarea,button.act{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+button.act{background:var(--pr);color:#fff;border:0;margin-top:10px;cursor:pointer}
+.rep{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--bd)}.rep:first-child{border-top:0}
+.dot{width:12px;height:12px;border-radius:50%;margin-top:4px;flex:none}.s1{background:var(--ok)}.s2{background:var(--wa)}.s3{background:var(--er)}
+.rep small{color:var(--mu)}.opt{border:1px solid var(--bd);border-radius:8px;padding:10px;margin-top:8px}.opt.best{border-color:var(--ok);border-width:2px}
+.tag{font-size:12px;background:var(--ok);color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px}
+.q button{display:block;width:100%;text-align:left;margin-top:6px;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;cursor:pointer}
+.q button.good{background:var(--ok);color:#fff}.q button.bad{background:var(--er);color:#fff}
+.note{font-size:12px;color:var(--mu)}svg{width:100%;height:auto;max-height:300px}
+</style></head><body>
+<header><h1>SantiagoMov</h1><p>Movilidad inteligente para Santiago de los Caballeros · Prototipo (datos simulados)</p></header>
+<nav id="nav"></nav>
+<main>
+<section id="estado" class="on">
+ <div class="kpis"><div class="kpi"><b id="k1">0</b><span>Reportes activos</span></div><div class="kpi"><b id="k2">0</b><span>Zonas críticas</span></div><div class="kpi"><b id="k3">0</b><span>Retraso medio (min)</span></div></div>
+ <div class="card" style="margin-top:12px"><h2>Mapa esquemático</h2>
+ <svg viewBox="0 0 600 260" role="img" aria-label="Mapa esquemático con monorriel, teleférico y puntos de reporte">
+  <rect width="600" height="260" rx="10" fill="none" stroke="var(--bd)"/>
+  <path d="M40 200 L180 160 L300 130 L420 100 L560 60" stroke="var(--pr)" stroke-width="6" fill="none"/>
+  <path d="M230 40 L290 130 L350 220" stroke="var(--ok)" stroke-width="4" stroke-dasharray="8 5" fill="none"/>
+  <g fill="var(--pr)"><circle cx="40" cy="200" r="7"/><circle cx="300" cy="130" r="7"/><circle cx="560" cy="60" r="7"/></g>
+  <g font-size="12" fill="var(--tx)"><text x="20" y="225">Cienfuegos (O)</text><text x="260" y="156">Monumento (centro)</text><text x="478" y="48">Pekín (S)</text><text x="196" y="30">Teleférico</text></g>
+  <g id="pts"></g></svg>
+  <p class="note">Línea azul: monorriel (en pruebas). Línea verde: teleférico. Los puntos son reportes ciudadanos simulados.</p></div>
+ <div class="card"><h2>Reportes recientes</h2><div id="lista"></div></div>
+</section>
+<section id="rutas">
+ <div class="card"><h2>Planificador multimodal</h2>
+ <label for="o">Origen</label><select id="o"></select><label for="d">Destino</label><select id="d"></select>
+ <label for="h">Hora</label><select id="h"><option value="1.6">Hora pico (7–9 a. m. / 5–7 p. m.)</option><option value="1">Resto del día</option></select>
+ <button class="act" onclick="ruta()">Buscar ruta</button><div id="res"></div>
+ <p class="note">Tiempos estimados con un modelo simple de demostración; en la versión real vendrían de datos GPS y del sistema de transporte.</p></div>
+</section>
+<section id="reportar">
+ <div class="card"><h2>Reportar un problema</h2>
+ <label for="t">Tipo</label><select id="t"><option>Cierre por obra</option><option>Accidente</option><option>Congestión</option><option>Semáforo dañado</option><option>Parada sin señalización</option></select>
+ <label for="z">Zona</label><select id="z"></select>
+ <label for="g">Gravedad</label><select id="g"><option value="1">Leve</option><option value="2" selected>Moderada</option><option value="3">Grave</option></select>
+ <label for="x">Detalle</label><textarea id="x" rows="3" placeholder="Ej.: calle cerrada, usar vía alterna"></textarea>
+ <button class="act" onclick="rep()">Enviar reporte</button><div id="ok" class="note"></div></div>
+</section>
+<section id="aprende">
+ <div class="card q"><h2>Educación vial: mini reto</h2><div id="quiz"></div></div>
+</section>
+</main>
+<script>
+const Z=["Zona Oeste (Cienfuegos)","Centro (Monumento)","Zona Sur (Pekín)","Zona Norte","Zona Este"];
+const X=[[40,200],[300,130],[560,60],[230,50],[470,150]];
+const D=[[0,14,26,20,28],[14,0,13,16,15],[26,13,0,28,16],[20,16,28,0,18],[28,15,16,18,0]];
+let R=[{t:"Cierre por obra",z:0,g:3,x:"Obras del monorriel; usar vía alterna."},{t:"Congestión",z:1,g:2,x:"Tránsito lento en el centro."},{t:"Semáforo dañado",z:3,g:2,x:"Intersección sin semáforo."},{t:"Accidente",z:4,g:1,x:"Choque leve, un carril ocupado."}];
+const $=id=>document.getElementById(id);
+const tabs=[["estado","Estado"],["rutas","Rutas"],["reportar","Reportar"],["aprende","Aprende"]];
+$("nav").innerHTML=tabs.map((t,i)=>`<button class="${i?"":"on"}" data-t="${t[0]}">${t[1]}</button>`).join("");
+$("nav").onclick=e=>{const t=e.target.dataset.t;if(!t)return;document.querySelectorAll("section,nav button").forEach(n=>n.classList.remove("on"));$(t).classList.add("on");e.target.classList.add("on")};
+["o","d","z"].forEach(id=>$(id).innerHTML=Z.map((n,i)=>`<option value="${i}">${n}</option>`).join(""));$("d").value=2;
+function pintar(){const c=["","s1","s2","s3"];
+ $("lista").innerHTML=R.slice().reverse().map(r=>`<div class="rep"><span class="dot ${c[r.g]}"></span><div><b>${r.t}</b> · ${Z[r.z]}<br><small>${r.x||"Sin detalle"}</small></div></div>`).join("");
+ $("pts").innerHTML=R.map(r=>`<circle cx="${X[r.z][0]+((r.x||"").length%9)*3}" cy="${X[r.z][1]-14}" r="9" fill="${["","#1f9d55","#e0a100","#d64545"][r.g]}" stroke="#fff"/>`).join("");
+ $("k1").textContent=R.length;$("k2").textContent=new Set(R.filter(r=>r.g==3).map(r=>r.z)).size;
+ $("k3").textContent=Math.round(R.reduce((a,r)=>a+r.g*3,0)/R.length);}
+function rep(){R.push({t:$("t").value,z:+$("z").value,g:+$("g").value,x:$("x").value.trim()});$("x").value="";$("ok").textContent="Reporte enviado. Ya aparece en el panel de Estado.";pintar()}
+function ruta(){const o=+$("o").value,d=+$("d").value,f=+$("h").value;const out=$("res");
+ if(o==d){out.innerHTML='<div class="opt">Elige un origen y un destino diferentes.</div>';return}
+ const k=D[o][d],pen=R.filter(r=>r.z==o||r.z==d).reduce((a,r)=>a+r.g,0);
+ const op=[["Carro particular",Math.round(k*1.2*f+pen*2),(k*0.2).toFixed(1)+" kg CO₂ aprox."],["Guagua o concho",Math.round(k*1.5*f+pen),(k*0.05).toFixed(1)+" kg CO₂ aprox."],["Monorriel + teleférico",Math.round(k*0.8+6),"0 kg CO₂ en operación (eléctrico)"]];
+ const m=Math.min(...op.map(x=>x[1]));
+ out.innerHTML=op.map(x=>`<div class="opt ${x[1]==m?"best":""}"><b>${x[0]}</b>${x[1]==m?'<span class="tag">Recomendada</span>':""}<br>${x[1]} min · ${x[2]}</div>`).join("")+'<p class="note">El monorriel aún está en pruebas; la opción se muestra como escenario futuro.</p>'}
+const Q=[["¿Qué debe hacer un conductor ante una luz amarilla?","Prepararse para detenerse si es seguro hacerlo","Acelerar para pasar",0],["¿Quién debe usar casco al ir en motocicleta?","Solo el conductor","El conductor y el acompañante",1],["Al cruzar una calle como peatón, lo correcto es:","Usar el paso peatonal y mirar a ambos lados","Cruzar por donde haya menos carros",0],["Usar el celular mientras se conduce:","Distrae y aumenta el riesgo de accidente","Es seguro si es solo un momento",0],["Para reducir la congestión y las emisiones conviene:","Combinar transporte público con otros medios","Que cada persona use su propio carro",0]];
+let qi=0,sc=0;
+function quiz(){const q=Q[qi];if(!q){$("quiz").innerHTML=`<p><b>Puntaje: ${sc}/${Q.length}</b></p><p>${sc>=4?"¡Excelente! Eres un ciudadano vial responsable.":"Sigue aprendiendo: la educación vial salva vidas."}</p><button class="act" onclick="qi=0;sc=0;quiz()">Reintentar</button>`;return}
+ $("quiz").innerHTML=`<p class="note">Pregunta ${qi+1} de ${Q.length}</p><p><b>${q[0]}</b></p>`+[q[1],q[2]].map((a,i)=>`<button onclick="resp(${i},this)">${a}</button>`).join("")}
+function resp(i,b){const q=Q[qi],ok=i==q[3];if(ok)sc++;b.classList.add(ok?"good":"bad");document.querySelectorAll("#quiz button").forEach(x=>x.disabled=true);setTimeout(()=>{qi++;quiz()},900)}
+pintar();quiz();
+</script></body></html>
